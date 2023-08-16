@@ -1,6 +1,8 @@
 const { v4: uuidv4 } = require("uuid");
 express = require("express");
 const bcrypt = require("bcrypt");
+var validator = require("validator");
+
 const port = 8080;
 const app = express();
 app.use(express.json());
@@ -12,9 +14,9 @@ id2 = "639383bd-3dc5-46d1-9121-27fb6ac5a61d";
 id3 = "38873ed8-c13a-441f-9d8c-2987ece26b7d";
 
 const users = [
-  { id: id1, email: "y456y66", password: "4587" },
-  { id: id2, email: "uf5hu56", password: "5896" },
-  { id: id3, email: "h7j7j75", password: "2145" },
+  { id: id1, email: "ari@bar.com", password: "4587" },
+  { id: id2, email: "shtipi@bar.com", password: "5896" },
+  { id: id3, email: "zeev@bar.com", password: "2145" },
 ];
 
 users.forEach((element) => {
@@ -31,6 +33,13 @@ function createId() {
   return uuidv4();
 }
 
+function validatorEmail(email) {
+  return validator.isEmail(email);
+}
+function validatorPassword(password) {
+  return validator.isStrongPassword(password);
+}
+
 app.get("/", (req, res) => {
   res.send(users);
 });
@@ -44,48 +53,57 @@ app.get("/users/:id", (req, res) => {
   });
 });
 
-// app.post("/users", (req, res) => {
-//   const { password, email } = req.body;
-//   const emailFound = users.findIndex((user) => user.email === email);
-//   if (emailFound === -1) {
-//     newUser = {
-//       id: createId(),
-//       email: email,
-//       password: createPass(password),
-//     };
-//     users.push(newUser);
-//     res.send(users);
-//   } else {
-//     res.send("error email is found");
-//   }
-// });
+app.post("/users/addUser", (req, res) => {
+  const { password, email } = req.body;
+  pass = createPass(password);
+  if (validatorEmail(email) && validatorPassword(pass)) {
+    const emailFound = users.find((user) => user.email === email);
+    if (!emailFound) {
+      newUser = {
+        id: createId(),
+        email: email,
+        password: pass,
+      };
+      users.push(newUser);
+      res.send(newUser);
+    } else {
+      res.send("error email is found");
+    }
+  } else {
+    res.send("error email OR  password not validator");
+  }
+});
 
 app.put("/users/:id", (req, res) => {
   const userId = req.params.id;
   const { password, email } = req.body;
-  const idFound = users.findIndex((user) => user.id === userId);
-  if (idFound !== -1) {
-    users.forEach((user) => {
-      if (userId === user.id) {
-        if (!email) {
-          user.email = user.email;
-        } else {
-          user.email = email;
+  if (validatorEmail(email) && validatorPassword(pass)) {
+    const idFound = users.find((user) => user.id === userId);
+    if (idFound) {
+      users.forEach((user) => {
+        if (userId === user.id) {
+          if (!email) {
+            user.email = user.email;
+          } else {
+            user.email = email;
+          }
+          if (!password) {
+            user.password = user.password;
+          } else {
+            user.password = createPass(password);
+          }
+          res.send(user);
         }
-        if (!password) {
-          user.password = user.password;
-        } else {
-          user.password = createPass(password);
-        }
-        res.send(user);
-      }
-    });
+      });
+    } else {
+      res.send("error id is not found");
+    }
   } else {
-    res.send("error id is not found");
+    res.send("error email OR  password not validator");
   }
 });
 
-app.delete("/users/:id", (req, res) => {
+app.delete("/users/delete/:id", (req, res) => {
   const userId = req.params.id;
   const idFound = users.findIndex((user) => user.id === userId);
   if (idFound !== -1) {
@@ -96,13 +114,17 @@ app.delete("/users/:id", (req, res) => {
   }
 });
 
-app.post('/users', (req, res) => {
+app.post("/users/login", (req, res) => {
   const { email, password } = req.body;
-  const emailFound = users.findIndex((user) => user.email === email);
-  if (emailFound !== -1 && bcrypt.compareSync(password, users[emailFound].password)) {
-    res.send('User is connected');
+  if (
+    users.find(
+      (user) =>
+        (user.email === email) & bcrypt.compareSync(password, user.password)
+    )
+  ) {
+    res.send("user is connected");
   } else {
-    res.send('Wrong credentials');
+    res.send("wrong credentials");
   }
 });
 
