@@ -37,57 +37,72 @@ app.get("/", (req, res) => {
 
 app.get("/users/:id", (req, res) => {
   const id = req.params.id;
-  users.forEach((element) => {
-    if (id == element.id) {
-      res.send(element);
+  users.forEach((user) => {
+    if (id === user.id) {
+      res.send(user);
     }
   });
 });
 
-app.post("/users", (req, res) => {
-  const pass = req.body.password;
-  newUser = {
-    id: createId(),
-    email: req.body.email,
-    password: createPass(pass),
-  };
-  users.push(newUser);
-  res.send(users);
-});
+// app.post("/users", (req, res) => {
+//   const { password, email } = req.body;
+//   const emailFound = users.findIndex((user) => user.email === email);
+//   if (emailFound === -1) {
+//     newUser = {
+//       id: createId(),
+//       email: email,
+//       password: createPass(password),
+//     };
+//     users.push(newUser);
+//     res.send(users);
+//   } else {
+//     res.send("error email is found");
+//   }
+// });
 
 app.put("/users/:id", (req, res) => {
   const userId = req.params.id;
-  users.forEach((element) => {
-    if (userId == element.id) {
-      element.email = req.body.email;
-      element.password = req.body.password;
-    }
-  });
-  res.send(users);
+  const { password, email } = req.body;
+  const idFound = users.findIndex((user) => user.id === userId);
+  if (idFound !== -1) {
+    users.forEach((user) => {
+      if (userId === user.id) {
+        if (!email) {
+          user.email = user.email;
+        } else {
+          user.email = email;
+        }
+        if (!password) {
+          user.password = user.password;
+        } else {
+          user.password = createPass(password);
+        }
+        res.send(user);
+      }
+    });
+  } else {
+    res.send("error id is not found");
+  }
 });
 
 app.delete("/users/:id", (req, res) => {
   const userId = req.params.id;
-  users.forEach((element, i) => {
-    if (userId == element.id) {
-      users.splice(i, 1);
-    }
-    res.send(users);
-  });
+  const idFound = users.findIndex((user) => user.id === userId);
+  if (idFound !== -1) {
+    users.splice(idFound, 1);
+    res.send("user delete ");
+  } else {
+    res.send("error id is not found");
+  }
 });
 
-app.post("/users", (req, res) => {
-  const userEmail = req.body.email;
-  const userPass = req.body.password;
-  let bool = false;
-  users.forEach((element) => {
-    if (element.email == userEmail & bcrypt.compareSync(userPass, element.password)) {
-      res.send("user is connected");
-      bool = true;
-    }
-  });
-  if (!bool) {
-    res.send(" wrong credentials");
+app.post('/users', (req, res) => {
+  const { email, password } = req.body;
+  const emailFound = users.findIndex((user) => user.email === email);
+  if (emailFound !== -1 && bcrypt.compareSync(password, users[emailFound].password)) {
+    res.send('User is connected');
+  } else {
+    res.send('Wrong credentials');
   }
 });
 
