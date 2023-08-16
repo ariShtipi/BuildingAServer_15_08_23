@@ -1,5 +1,3 @@
-const { json } = require("body-parser");
-const send = require("send");
 const { v4: uuidv4 } = require("uuid");
 express = require("express");
 const app = express();
@@ -20,49 +18,65 @@ const users = [
   { id: id3, email: "h7j7j75", password: "2145" },
 ];
 
-app.get("/", (req, res) => {
-  res.send(users);
-});
+// app.get("/", (req, res) => {
+//   res.send(users);
+// });
 
-app.get("/users/:id", (req, res) => {
-  const id = req.params.id;
-  users.forEach((element) => {
-    if (id == element.id) {
-      res.send(element);
-    }
-  });
-});
+// app.get("/users/:id", (req, res) => {
+//   const id = req.params.id;
+//   users.forEach((element) => {
+//     if (id == element.id) {
+//       res.send(element);
+//     }
+//   });
+// });
+
+// app.post("/users", (req, res) => {
+//   newUser = {
+//     id: createId(),
+//     email: req.body.email,
+//     password: req.body.password,
+//   };
+//   users.push(newUser);
+//   res.send(users);
+// });
+
+// app.put("/users/:id", (req, res) => {
+//   const userId = req.params.id;
+//   users.forEach((element) => {
+//     if (userId == element.id) {
+//       element.email = req.body.email;
+//       element.password = req.body.password;
+//     }
+//   });
+//   res.send(users);
+// });
+
+// app.delete("/users/:id", (req, res) => {
+//   const userId = req.params.id;
+//   users.forEach((element, i) => {
+//     if (userId == element.id) {
+//       users.splice(i,1);
+//     }
+//     res.send(users);
+//   });
+// });
 
 app.post("/users", (req, res) => {
-  newUser = {
-    id: createId(),
-    email: req.body.email,
-    password: req.body.password,
-  };
-  users.push(newUser);
-  res.send(users);
-});
-
-app.put("/users/:id", (req, res) => {
-  const userId = req.params.id;
+  const userEmail = req.body.email;
+  const userPass = req.body.password;
+  let bool = false;
   users.forEach((element) => {
-    if (userId == element.id) {
-      element.email = req.body.email;
-      element.password = req.body.password;
+    if ((element.email == userEmail) & (element.password == userPass)) {
+      res.send("user is connected");
+      bool = true;
     }
   });
-  res.send(users);
+  if (!bool) {
+    res.send("not exist such a user in our data");
+  }
 });
 
-app.delete("/users/:id", (req, res) => {
-  const userId = req.params.id;
-  users.forEach((element, i) => {
-    if (userId == element.id) {
-      users.splice(i,1);
-    }
-    res.send(users);
-  });
-});
 
 app.listen(port, () => {
   console.log(`Server running on port:${port}`);
