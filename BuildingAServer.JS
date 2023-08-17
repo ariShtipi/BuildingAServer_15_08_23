@@ -77,6 +77,7 @@ app.post("/users/addUser", (req, res) => {
 app.put("/users/:id", (req, res) => {
   const userId = req.params.id;
   const { password, email } = req.body;
+  pass = createPass(password);
   if (validatorEmail(email) && validatorPassword(pass)) {
     const idFound = users.find((user) => user.id === userId);
     if (idFound) {
@@ -87,19 +88,19 @@ app.put("/users/:id", (req, res) => {
           } else {
             user.email = email;
           }
-          if (!password) {
+          if (!pass) {
             user.password = user.password;
           } else {
-            user.password = createPass(password);
+            user.password =pass;
           }
           res.send(user);
         }
       });
     } else {
-      res.send("error id is not found");
+      res.status(400).send("error id is not found");
     }
   } else {
-    res.send("error email OR  password not validator");
+    res.status(400).send("error email OR  password not validator");
   }
 });
 
@@ -119,7 +120,7 @@ app.post("/users/login", (req, res) => {
   if (
     users.find(
       (user) =>
-        (user.email === email) & bcrypt.compareSync(password, user.password)
+        (user.email === email) && bcrypt.compareSync(password, user.password)
     )
   ) {
     res.send("user is connected");
